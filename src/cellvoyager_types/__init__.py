@@ -1,11 +1,11 @@
 import xmltodict
 
 from pathlib import Path
-
+from typing import Any
 from ._metadata import CellVoyagerAcquisition
 
 
-def _parse(path: Path):
+def _parse(path: Path) -> dict[str, Any]:
     with open(path, encoding="utf-8") as f:
         return xmltodict.parse(
             f.read(),
@@ -16,13 +16,15 @@ def _parse(path: Path):
         )
 
 
-def load_wpi(wpi_path: Path):
+def load_wpi(wpi_path: Path) -> CellVoyagerAcquisition:
     if not wpi_path.exists():
         raise FileNotFoundError(f"{wpi_path} does not exist.")
     wpi_dict = _parse(wpi_path)
     mlf_dict = _parse(wpi_path.parent / "MeasurementData.mlf")
     mrf_dict = _parse(wpi_path.parent / "MeasurementDetail.mrf")
-    mes_path = wpi_path.parent / mrf_dict["MeasurementDetail"]["MeasurementSettingFileName"]
+    mes_path = (
+        wpi_path.parent / mrf_dict["MeasurementDetail"]["MeasurementSettingFileName"]
+    )
     mes_dict = _parse(mes_path)
     return CellVoyagerAcquisition(
         **wpi_dict,

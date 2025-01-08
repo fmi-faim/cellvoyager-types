@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_pascal
 from typing import Literal
 
+
 class Base(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_pascal,
@@ -37,7 +38,9 @@ class ErrorMeasurementRecord(MeasurementRecordBase):
 
 class MeasurementData(Base):
     version: Literal["1.0"]
-    measurement_record: list[ImageMeasurementRecord, ErrorMeasurementRecord] | None = None
+    measurement_record: list[ImageMeasurementRecord | ErrorMeasurementRecord] | None = (
+        None
+    )
 
 
 class MeasurementSamplePlate(Base):

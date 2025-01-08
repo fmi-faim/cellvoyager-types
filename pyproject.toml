@@ -47,7 +47,8 @@ pytest = "*"
 pytest-cov = "*"
 
 [tool.pixi.feature.test.tasks]
-test = "pytest"
+test = "pytest --cov=src --cov-report term-missing"
+cov-xml = "pytest --cov=src --cov-report xml"
 
 [tool.pixi.feature.py310.dependencies]
 python = "==3.10"
