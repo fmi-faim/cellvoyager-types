@@ -1,0 +1,59 @@
+[project]
+authors = [
+    {name = "Jan Eglinger", email = "jan.eglinger@fmi.ch"},
+]
+dependencies = [
+    "ome-types",
+    "xmltodict",
+]
+description = "Pydantic models for CellVoyager metadata"
+name = "cellvoyager-types"
+requires-python = ">= 3.10"
+dynamic = ["version"]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling", "hatch-vcs"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.pypi-dependencies]
+cellvoyager_types = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "py312" }
+jupyter = { features = ["jupyter"], solve-group = "py312" }
+py310 = { features = ["py310", "test"], solve-group = "py310" }
+py311 = { features = ["py311", "test"], solve-group = "py311" }
+py312 = { features = ["py312", "test"], solve-group = "py312" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+ome-types = ">=0.5.3,<0.6"
+xmltodict = ">=0.14.2,<0.15"
+
+[tool.pixi.feature.jupyter.dependencies]
+jupyter = "*"
+
+
+[tool.pixi.feature.test.dependencies]
+pytest = "*"
+pytest-cov = "*"
+
+[tool.pixi.feature.test.tasks]
+test = "pytest"
+
+[tool.pixi.feature.py310.dependencies]
+python = "==3.10"
+
+[tool.pixi.feature.py311.dependencies]
+python = "==3.11"
+
+[tool.pixi.feature.py312.dependencies]
+python = "==3.12"
