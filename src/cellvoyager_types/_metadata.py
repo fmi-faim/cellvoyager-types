@@ -1,11 +1,12 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
-from typing import Literal
+from typing import Annotated, Literal
 
 
 class Base(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_pascal,
+        extra="forbid",
     )
 
 
@@ -37,6 +38,7 @@ class ErrorMeasurementRecord(MeasurementRecordBase):
 
 
 class MeasurementData(Base):
+    xmlns: Annotated[dict, Field(alias="xmlns")]
     version: Literal["1.0"]
     measurement_record: list[ImageMeasurementRecord | ErrorMeasurementRecord] | None = (
         None
@@ -67,6 +69,7 @@ class MeasurementChannel(Base):
 
 
 class MeasurementDetail(Base):
+    xmlns: Annotated[dict, Field(alias="xmlns")]
     version: Literal["1.0"]
     operator_name: str
     title: str
@@ -83,9 +86,11 @@ class MeasurementDetail(Base):
     release_number: str
     status: str
     measurement_sample_plate: MeasurementSamplePlate
+    measurement_channel: list[MeasurementChannel]
 
 
 class WellPlate(Base):
+    xmlns: Annotated[dict, Field(alias="xmlns")]
     version: Literal["1.0"]
     name: str
     product_i_d: str
@@ -196,6 +201,7 @@ class ChannelList(Base):
 
 
 class MeasurementSetting(Base):
+    xmlns: Annotated[dict, Field(alias="xmlns")]
     version: Literal["1.0"]
     product_i_d: str
     application: str
