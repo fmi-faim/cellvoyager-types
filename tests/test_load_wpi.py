@@ -24,6 +24,9 @@ def test_load_wpi(wpi_path: Path) -> None:
     assert len(metadata.measurement_data.measurement_record) == 1984
     assert len(metadata.measurement_setting.channel_list.channel) == 4
 
+    assert metadata.measurement_detail.measurement_channel
+    assert len(metadata.measurement_detail.measurement_channel) == 4
+
 
 def test_missing_wpi_file() -> None:
     with pytest.raises(FileNotFoundError):
