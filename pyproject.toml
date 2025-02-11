@@ -3,7 +3,6 @@ authors = [
     {name = "Jan Eglinger", email = "jan.eglinger@fmi.ch"},
 ]
 dependencies = [
-    "ome-types",
     "xmltodict",
 ]
 description = "Pydantic models for CellVoyager metadata"
@@ -18,7 +17,7 @@ requires = ["hatchling", "hatch-vcs"]
 [project.optional-dependencies]
 xarray = [
   "dask",
-  "numpy<2",
+  "numpy",
   "tifffile",
   "xarray",
   "zarr<3",
