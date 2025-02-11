@@ -24,9 +24,13 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         pixi-environment:
           - py310
+          - py310-xarray
           - py311
+          - py311-xarray
           - py312
+          - py312-xarray
           - py313
+          - py313-xarray
     steps:
       - uses: actions/checkout@v4
 
