@@ -3,6 +3,7 @@ authors = [
     {name = "Jan Eglinger", email = "jan.eglinger@fmi.ch"},
 ]
 dependencies = [
+    "pydantic",
     "xmltodict",
 ]
 description = "Pydantic models for CellVoyager metadata"
@@ -49,12 +50,11 @@ py313-xarray = { features = ["py313", "test", "xarray"], solve-group = "py313" }
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
-ome-types = ">=0.5.3,<0.6"
+pydantic = ">=2.10.6,<3"
 xmltodict = ">=0.14.2,<0.15"
 
 [tool.pixi.feature.jupyter.dependencies]
 jupyter = "*"
-
 
 [tool.pixi.feature.test.dependencies]
 pytest = "*"
