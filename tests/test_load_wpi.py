@@ -14,6 +14,7 @@ def test_load_wpi(wpi_path: Path) -> None:
     metadata = load_wpi(wpi_path)
 
     assert metadata
+    assert metadata.parent == wpi_path.parent
 
     assert metadata.well_plate
     assert metadata.measurement_data

@@ -3,7 +3,6 @@ authors = [
     {name = "Jan Eglinger", email = "jan.eglinger@fmi.ch"},
 ]
 dependencies = [
-    "ome-types",
     "xmltodict",
 ]
 description = "Pydantic models for CellVoyager metadata"
@@ -14,6 +13,15 @@ dynamic = ["version"]
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling", "hatch-vcs"]
+
+[project.optional-dependencies]
+xarray = [
+  "dask",
+  "numpy",
+  "tifffile",
+  "xarray",
+  "zarr<3",
+]
 
 [tool.hatch.version]
 source = "vcs"
@@ -27,11 +35,16 @@ cellvoyager_types = { path = ".", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "py312" }
+xarray = { features = ["xarray"], solve-group = "py312" }
 jupyter = { features = ["jupyter"], solve-group = "py312" }
 py310 = { features = ["py310", "test"], solve-group = "py310" }
+py310-xarray = { features = ["py310", "test", "xarray"], solve-group = "py310" }
 py311 = { features = ["py311", "test"], solve-group = "py311" }
+py311-xarray = { features = ["py311", "test", "xarray"], solve-group = "py311" }
 py312 = { features = ["py312", "test"], solve-group = "py312" }
+py312-xarray = { features = ["py312", "test", "xarray"], solve-group = "py312" }
 py313 = { features = ["py313", "test"], solve-group = "py313" }
+py313-xarray = { features = ["py313", "test", "xarray"], solve-group = "py313" }
 
 [tool.pixi.tasks]
 

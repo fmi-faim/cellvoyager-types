@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, DirectoryPath, Field, field_validator
 from pydantic.alias_generators import to_pascal
 from typing import Annotated, Literal
 
@@ -102,19 +102,28 @@ class WellPlate(Base):
 
 
 class TargetWell(Base):
-    column: int
-    row: int
+    column: float
+    row: float
     value: bool
 
 
 class WellSequence(Base):
     is_selected: bool
-    target_well: TargetWell
+    target_well: list[TargetWell]
+
+    @field_validator('target_well', mode='before')
+    def _ensure_list(cls, v):
+        """Convert single dict to list containing that dict"""
+        if isinstance(v, dict):
+            return [v]
+        if isinstance(v, list):
+            return v
+        raise ValueError(f'Expected dict or list, got {type(v)}')
 
 
 class Point(Base):
-    x: int
-    y: int
+    x: float
+    y: float
 
 
 class FixedPosition(Base):
@@ -140,7 +149,17 @@ class ActionAcquire3D(Base):
 
 class ActionList(Base):
     run_mode: str
-    action_acquire_3_d: ActionAcquire3D
+    a_f_search: str | None = None
+    action_acquire_3_d: list[ActionAcquire3D]
+
+    @field_validator('action_acquire_3_d', mode='before')
+    def _ensure_list(cls, v):
+        """Convert single dict to list containing that dict"""
+        if isinstance(v, dict):
+            return [v]
+        if isinstance(v, list):
+            return v
+        raise ValueError(f'Expected dict or list, got {type(v)}')
 
 
 class Timeline(Base):
@@ -158,6 +177,15 @@ class Timeline(Base):
 
 class Timelapse(Base):
     timeline: list[Timeline]
+
+    @field_validator('timeline', mode='before')
+    def _ensure_list(cls, v):
+        """Convert single dict to list containing that dict"""
+        if isinstance(v, dict):
+            return [v]
+        if isinstance(v, list):
+            return v
+        raise ValueError(f'Expected dict or list, got {type(v)}')
 
 
 class LightSource(Base):
@@ -213,7 +241,47 @@ class MeasurementSetting(Base):
 
 
 class CellVoyagerAcquisition(Base):
+    parent: Annotated[DirectoryPath, Field(alias="parent")]
     well_plate: WellPlate
     measurement_data: MeasurementData
     measurement_detail: MeasurementDetail
     measurement_setting: MeasurementSetting
+
+    def to_dataarray(
+            self,
+            *,
+            columns: list[int] | None = None,
+            rows: list[int] | None = None,
+            fields: list[int] | None = None,
+            channels: list[int] | None = None,
+        ):
+        from cellvoyager_types._xarray import HAS_XARRAY
+        if HAS_XARRAY:
+            from cellvoyager_types._xarray import dataarray_from_metadata
+        else:
+            raise ValueError("Dependencies for data array creation not found.")
+        if not self.measurement_data.measurement_record:
+            raise ValueError("No measurement records found in dataset.")
+        image_records = [record for record in self.measurement_data.measurement_record if isinstance(record, ImageMeasurementRecord)]
+        if columns is not None:
+            image_records = [record for record in image_records if record.column in columns]
+        if rows is not None:
+            image_records = [record for record in image_records if record.row in rows]
+        if fields is not None:
+            image_records = [record for record in image_records if record.field_index in fields]
+        if channels is not None:
+            image_records = [record for record in image_records if record.ch in channels]
+        if len(image_records) == 0:
+            msg = f"""
+                No image records found for the specified subset.
+                Available rows: {set(record.row for record in self.measurement_data.measurement_record)}
+                Available columns: {set(record.column for record in self.measurement_data.measurement_record)}
+                Available fields: {set(record.field_index for record in self.measurement_data.measurement_record)}
+                Available channels: {set(record.ch for record in self.measurement_data.measurement_record)}
+                """
+            raise ValueError(msg)
+
+        return dataarray_from_metadata(
+            parent_folder=self.parent,
+            image_records=image_records,
+        )
