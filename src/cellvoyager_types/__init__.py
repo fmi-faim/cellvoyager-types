@@ -20,13 +20,15 @@ def load_wpi(wpi_path: Path) -> CellVoyagerAcquisition:
     if not wpi_path.exists():
         raise FileNotFoundError(f"{wpi_path} does not exist.")
     wpi_dict = _parse(wpi_path)
-    mlf_dict = _parse(wpi_path.parent / "MeasurementData.mlf")
-    mrf_dict = _parse(wpi_path.parent / "MeasurementDetail.mrf")
+    parent_folder = wpi_path.parent
+    mlf_dict = _parse(parent_folder / "MeasurementData.mlf")
+    mrf_dict = _parse(parent_folder / "MeasurementDetail.mrf")
     mes_path = (
         wpi_path.parent / mrf_dict["MeasurementDetail"]["MeasurementSettingFileName"]
     )
     mes_dict = _parse(mes_path)
     return CellVoyagerAcquisition(
+        parent=parent_folder,
         **wpi_dict,
         **mlf_dict,
         **mrf_dict,
