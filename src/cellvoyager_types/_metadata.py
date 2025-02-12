@@ -247,6 +247,53 @@ class CellVoyagerAcquisition(Base):
     measurement_detail: MeasurementDetail
     measurement_setting: MeasurementSetting
 
+    def _no_measurement_records(self):
+        ValueError("No measurement records found in dataset.")
+
+    def get_wells(self) -> list[tuple[int, int]]:
+        if self.measurement_data.measurement_record:
+            return list(dict.fromkeys((r.row, r.column) for r in self.measurement_data.measurement_record))
+        raise(self._no_measurement_records())
+
+    def get_wells_dict(self) -> dict[str, tuple[int, int]]:
+        if self.measurement_data.measurement_record:
+            letters = "ABCDEFGHIJKLMNOP"
+            return {
+                f"{letters[r.row-1]}{r.column:02}": (r.row, r.column)
+                for r in self.measurement_data.measurement_record
+            }
+        raise(self._no_measurement_records())
+
+    def get_fields(self) -> list[int]:
+        if self.measurement_data.measurement_record:
+            return list(dict.fromkeys(r.field_index for r in self.measurement_data.measurement_record))
+        raise(self._no_measurement_records())
+
+    def get_channels(self) -> list[int]:
+        if self.measurement_data.measurement_record:
+            return list(dict.fromkeys(r.ch for r in self.measurement_data.measurement_record))
+        raise(self._no_measurement_records())
+
+    def get_time_points(self) -> list[int]:
+        if self.measurement_data.measurement_record:
+            return list(dict.fromkeys(r.time_point for r in self.measurement_data.measurement_record))
+        raise(self._no_measurement_records())
+
+    def get_z_indices(self) -> list[int]:
+        if self.measurement_data.measurement_record:
+            return list(dict.fromkeys(r.z_index for r in self.measurement_data.measurement_record))
+        raise(self._no_measurement_records())
+
+    def get_timeline_indices(self) -> list[int]:
+        if self.measurement_data.measurement_record:
+            return list(dict.fromkeys(r.timeline_index for r in self.measurement_data.measurement_record))
+        raise(self._no_measurement_records())
+
+    def get_action_indices(self) -> list[int]:
+        if self.measurement_data.measurement_record:
+            return list(dict.fromkeys(r.action_index for r in self.measurement_data.measurement_record))
+        raise(self._no_measurement_records())
+
     def to_dataarray(
             self,
             *,
