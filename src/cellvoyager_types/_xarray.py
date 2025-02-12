@@ -41,7 +41,7 @@ def dataarray_from_metadata(parent_folder: Path, image_records: list[ImageMeasur
                 dask_arrays.append(data)
 
         # Stack arrays along a new first axis
-        stacked = da.stack(dask_arrays)
+        stacked = da.stack(dask_arrays).rechunk(chunks=(len(dask_arrays), *chunks))
 
         # Create DataArray with all coordinates at once
         coords = {

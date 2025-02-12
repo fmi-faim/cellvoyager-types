@@ -29,6 +29,7 @@ def test_xarray_subset(cv_acquisition):
         )
         assert array.dims == ("row", "column", "field", "channel", "z", "y", "x")
         assert array.shape == (1, 1, 3, 2, 4, 2000, 2000)
+        assert array.data.chunksize == (1, 1, 1, 1, 4, 2000, 2000)
         squeezed = array.squeeze()
         assert squeezed.dims == ("field", "channel", "z", "y", "x")
         assert squeezed.shape == (3, 2, 4, 2000, 2000)
