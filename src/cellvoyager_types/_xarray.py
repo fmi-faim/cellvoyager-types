@@ -41,8 +41,9 @@ def dataarray_from_metadata(parent_folder: Path, image_records: list[ImageMeasur
         horizontal_pixels = measurement_channels[ch].horizontal_pixels
         vertical_pixels = measurement_channels[ch].vertical_pixels
         dtype = "uint16" if measurement_channels[ch].input_bit_depth == 16 else "uint8"  # TODO more bit depths
-        volume = da.zeros((len(sorted_images), vertical_pixels, horizontal_pixels), dtype=dtype)
-        stacked = da.map_blocks(_load_image, volume, dtype=dtype)
+        chunks = (len(sorted_images), vertical_pixels, horizontal_pixels)
+        volume = da.zeros((len(sorted_images), vertical_pixels, horizontal_pixels), chunks=chunks, dtype=dtype)
+        stacked = da.map_blocks(_load_image, volume, chunks=chunks, dtype=dtype)
 
         # Create DataArray with all coordinates at once
         coords = {
