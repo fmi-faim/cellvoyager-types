@@ -8,9 +8,9 @@ except ImportError:
     HAS_XARRAY = False
 
 from pathlib import Path
-from cellvoyager_types._metadata import ImageMeasurementRecord
+from cellvoyager_types._metadata import ImageMeasurementRecord, MeasurementDetail
 
-def dataarray_from_metadata(parent_folder: Path, image_records: list[ImageMeasurementRecord]) -> "xr.DataArray":
+def dataarray_from_metadata(parent_folder: Path, image_records: list[ImageMeasurementRecord], detail: MeasurementDetail) -> "xr.DataArray":
     """
     Organizes images and loads them into a combined DataArray.
 
@@ -20,7 +20,7 @@ def dataarray_from_metadata(parent_folder: Path, image_records: list[ImageMeasur
     Returns:
         xr.DataArray: Combined dataset with proper coordinates
     """
-    # Group images by field_index and channel
+    # Group images by well, field_index and channel
     grouped_images = defaultdict(list)
     for img in image_records:
         key = (img.column, img.row, img.field_index, img.ch)
@@ -32,16 +32,15 @@ def dataarray_from_metadata(parent_folder: Path, image_records: list[ImageMeasur
         # Sort by z_index
         sorted_images: list[ImageMeasurementRecord] = sorted(images, key=lambda x: x.z_index)
 
-        # Load images as dask arrays via zarr
-        chunks = (-1, -1)
-        dask_arrays = []
-        for img in sorted_images:
-            with imread(parent_folder / img.value, aszarr=True) as store:
-                data = da.from_zarr(store, chunks=chunks)
-                dask_arrays.append(data)
+        def _load_image(_, block_id=None):
+            return imread(parent_folder / sorted_images[block_id[0]].value)[None, ...]
 
-        # Stack arrays along a new first axis
-        stacked = da.stack(dask_arrays).rechunk(chunks=(len(dask_arrays), *chunks))
+        # Load images as dask arrays
+        horizontal_pixels = detail.measurement_channel[ch].horizontal_pixels
+        vertical_pixels = detail.measurement_channel[ch].vertical_pixels
+        dtype = "uint16" if detail.measurement_channel[ch].input_bit_depth == 16 else "uint8"  # TODO more bit depths
+        volume = da.zeros((len(sorted_images), vertical_pixels, horizontal_pixels), dtype=dtype)
+        stacked = da.map_blocks(_load_image, volume, dtype=dtype)
 
         # Create DataArray with all coordinates at once
         coords = {
@@ -49,7 +48,7 @@ def dataarray_from_metadata(parent_folder: Path, image_records: list[ImageMeasur
             'column': [col],
             'field': [field_idx],
             'channel': [ch],
-            'z': [img.z_index for img in sorted_images],  # TODO z_index is 1-based currently
+            'z': [img.z_index for img in sorted_images],  # z_index is 1-based
             'y': range(stacked.shape[1]),
             'x': range(stacked.shape[2])
         }

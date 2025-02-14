@@ -26,13 +26,16 @@ def test_xarray_subset(cv_acquisition):
             columns=[8],
             fields=[1, 3, 4],
             channels=[1, 2],
+            z_indices=[2, 3],
         )
         assert array.dims == ("row", "column", "field", "channel", "z", "y", "x")
-        assert array.shape == (1, 1, 3, 2, 4, 2000, 2000)
-        assert array.data.chunksize == (1, 1, 1, 1, 4, 2000, 2000)
+        assert array.shape == (1, 1, 3, 2, 2, 2000, 2000)
+        assert array.data.chunksize == (1, 1, 1, 1, 2, 2000, 2000)
         squeezed = array.squeeze()
         assert squeezed.dims == ("field", "channel", "z", "y", "x")
-        assert squeezed.shape == (3, 2, 4, 2000, 2000)
+        assert squeezed.shape == (3, 2, 2, 2000, 2000)
+        assert squeezed.dtype == "uint16"
+        assert squeezed.data.compute().dtype == "uint16"
     else:
         with pytest.raises(ValueError):
             cv_acquisition.to_dataarray()
@@ -40,7 +43,7 @@ def test_xarray_subset(cv_acquisition):
 
 def test_xarray_invalid(cv_acquisition):
     if HAS_XARRAY:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match='No image records found for the specified subset.'):
             cv_acquisition.to_dataarray(
                 rows=[9],
                 columns=[20],

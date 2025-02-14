@@ -301,6 +301,7 @@ class CellVoyagerAcquisition(Base):
             rows: list[int] | None = None,
             fields: list[int] | None = None,
             channels: list[int] | None = None,
+            z_indices: list[int] | None = None,
         ):
         from cellvoyager_types._xarray import HAS_XARRAY
         if HAS_XARRAY:
@@ -318,6 +319,8 @@ class CellVoyagerAcquisition(Base):
             image_records = [record for record in image_records if record.field_index in fields]
         if channels is not None:
             image_records = [record for record in image_records if record.ch in channels]
+        if z_indices is not None:
+            image_records = [record for record in image_records if record.z_index in z_indices]
         if len(image_records) == 0:
             msg = f"""
                 No image records found for the specified subset.
@@ -331,4 +334,5 @@ class CellVoyagerAcquisition(Base):
         return dataarray_from_metadata(
             parent_folder=self.parent,
             image_records=image_records,
+            detail=self.measurement_detail,
         )
