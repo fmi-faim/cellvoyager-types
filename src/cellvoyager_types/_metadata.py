@@ -196,13 +196,13 @@ class LightSource(Base):
 
 
 class LightSourceList(Base):
-    use_calibrated_laser_power: bool
+    use_calibrated_laser_power: bool | None = None
     light_source: list[LightSource]
 
 
 class Channel(Base):
     ch: int
-    target: int
+    target: str
     objective_i_d: str
     objective: str
     magnification: int
@@ -215,8 +215,10 @@ class Channel(Base):
     color: str
     min_level: float
     max_level: float
-    c_s_u_i_d: int
-    pinhole_diameter: int
+    c_s_u_i_d: int | None = None
+    pinhole_diameter: int | None = None
+    andor_parameter_i_d: int | None = None
+    andor_parameter: str | None = None
     kind: str
     camera_type: str
     input_level: int
