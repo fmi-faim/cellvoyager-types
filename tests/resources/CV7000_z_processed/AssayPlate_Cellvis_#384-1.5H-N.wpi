@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bts:WellPlate bts:Version="1.0" bts:Name="AssayPlate_Cellvis_#384-1.5H-N" bts:ProductID="1038480002" bts:Usage="SamplePlate" bts:DensityUnit="uM" bts:Columns="24" bts:Rows="16" xmlns:bts="http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">
+  <bts:Description>Default Plate Information</bts:Description>
+</bts:WellPlate>

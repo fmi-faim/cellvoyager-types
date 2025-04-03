@@ -14,6 +14,7 @@ class MeasurementRecordBase(Base):
     time: str
     column: int
     row: int
+    field_index: int
     time_point: int
     timeline_index: int
     x: float
@@ -23,10 +24,12 @@ class MeasurementRecordBase(Base):
 
 class ImageMeasurementRecord(MeasurementRecordBase):
     type: Literal["IMG"]
-    field_index: int
     tile_x_index: int | None = None
     tile_y_index: int | None = None
     z_index: int
+    z_image_processing: str | None = None
+    z_top: float | None = None
+    z_bottom: float | None = None
     action_index: int
     action: str
     z: float
@@ -145,6 +148,7 @@ class ActionAcquire3D(Base):
     slice_length: int
     use_soft_focus: bool
     ch: int
+    image_processing: str | None = None
 
 
 class ActionList(Base):
