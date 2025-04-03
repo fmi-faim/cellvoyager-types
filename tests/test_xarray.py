@@ -40,6 +40,20 @@ def test_xarray_subset(cv_acquisition):
             cv_acquisition.to_dataarray()
 
 
+def test_xarray_subset_downsampled(cv_acquisition):
+    if HAS_XARRAY:
+        array = cv_acquisition.to_dataarray(
+            rows=[4],
+            columns=[8],
+            fields=[1, 3],
+            channels=[1],
+            z_indices=[3, 4],
+        )
+        result = array.coarsen(y=4, x=4).mean().squeeze().compute()
+        assert result.shape == (2, 2, 500, 500)
+        assert result.dims == ("field", "z", "y", "x")
+
+
 def test_xarray_invalid(cv_acquisition):
     if HAS_XARRAY:
         with pytest.raises(ValueError, match='No image records found for the specified subset.'):
