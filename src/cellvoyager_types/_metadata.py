@@ -258,7 +258,7 @@ class CellVoyagerAcquisition(Base):
 
     def get_wells(self) -> list[tuple[int, int]]:
         if self.measurement_data.measurement_record:
-            return list(dict.fromkeys((r.row, r.column) for r in self.measurement_data.measurement_record))
+            return list(dict.fromkeys((r.row, r.column) for r in self.get_image_measurement_records()))
         raise(self._no_measurement_records())
 
     def get_wells_dict(self) -> dict[str, tuple[int, int]]:
@@ -266,7 +266,7 @@ class CellVoyagerAcquisition(Base):
             letters = "ABCDEFGHIJKLMNOP"
             return {
                 f"{letters[r.row-1]}{r.column:02}": (r.row, r.column)
-                for r in self.measurement_data.measurement_record
+                for r in self.get_image_measurement_records()
             }
         raise(self._no_measurement_records())
 
@@ -321,7 +321,7 @@ class CellVoyagerAcquisition(Base):
             raise ValueError("Dependencies for data array creation not found.")
         if not self.measurement_data.measurement_record:
             raise ValueError("No measurement records found in dataset.")
-        image_records = [record for record in self.measurement_data.measurement_record if isinstance(record, ImageMeasurementRecord)]
+        image_records = self.get_image_measurement_records()
         if columns is not None:
             image_records = [record for record in image_records if record.column in columns]
         if rows is not None:
@@ -335,10 +335,10 @@ class CellVoyagerAcquisition(Base):
         if len(image_records) == 0:
             msg = f"""
                 No image records found for the specified subset.
-                Available rows: {set(record.row for record in self.measurement_data.measurement_record)}
-                Available columns: {set(record.column for record in self.measurement_data.measurement_record)}
-                Available fields: {set(record.field_index for record in self.measurement_data.measurement_record)}
-                Available channels: {set(record.ch for record in self.measurement_data.measurement_record)}
+                Available rows: {set(record.row for record in self.get_image_measurement_records())}
+                Available columns: {set(record.column for record in self.get_image_measurement_records())}
+                Available fields: {set(record.field_index for record in self.get_image_measurement_records())}
+                Available channels: {set(record.ch for record in self.get_image_measurement_records())}
                 """
             raise ValueError(msg)
 
