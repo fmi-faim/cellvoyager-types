@@ -272,32 +272,37 @@ class CellVoyagerAcquisition(Base):
 
     def get_fields(self) -> list[int]:
         if self.measurement_data.measurement_record:
-            return list(dict.fromkeys(r.field_index for r in self.measurement_data.measurement_record))
+            return list(dict.fromkeys(r.field_index for r in self.get_image_measurement_records()))
         raise(self._no_measurement_records())
 
     def get_channels(self) -> list[int]:
         if self.measurement_data.measurement_record:
-            return list(dict.fromkeys(r.ch for r in self.measurement_data.measurement_record))
+            return list(dict.fromkeys(r.ch for r in self.get_image_measurement_records()))
         raise(self._no_measurement_records())
 
     def get_time_points(self) -> list[int]:
         if self.measurement_data.measurement_record:
-            return list(dict.fromkeys(r.time_point for r in self.measurement_data.measurement_record))
+            return list(dict.fromkeys(r.time_point for r in self.get_image_measurement_records()))
         raise(self._no_measurement_records())
 
     def get_z_indices(self) -> list[int]:
         if self.measurement_data.measurement_record:
-            return list(dict.fromkeys(r.z_index for r in self.measurement_data.measurement_record))
+            return list(dict.fromkeys(r.z_index for r in self.get_image_measurement_records()))
         raise(self._no_measurement_records())
 
     def get_timeline_indices(self) -> list[int]:
         if self.measurement_data.measurement_record:
-            return list(dict.fromkeys(r.timeline_index for r in self.measurement_data.measurement_record))
+            return list(dict.fromkeys(r.timeline_index for r in self.get_image_measurement_records()))
         raise(self._no_measurement_records())
 
     def get_action_indices(self) -> list[int]:
         if self.measurement_data.measurement_record:
-            return list(dict.fromkeys(r.action_index for r in self.measurement_data.measurement_record))
+            return list(dict.fromkeys(r.action_index for r in self.get_image_measurement_records()))
+        raise(self._no_measurement_records())
+
+    def get_image_measurement_records(self) -> list[ImageMeasurementRecord]:
+        if self.measurement_data.measurement_record:
+            return [record for record in self.measurement_data.measurement_record if isinstance(record, ImageMeasurementRecord)]
         raise(self._no_measurement_records())
 
     def to_dataarray(
