@@ -397,7 +397,7 @@ class CellVoyagerAcquisition(Base):
         ):
         from cellvoyager_types._xarray import HAS_XARRAY
         if HAS_XARRAY:
-            from src.cellvoyager_types._xarray import dataarray_from_metadata
+            from cellvoyager_types._xarray import dataarray_from_metadata
         else:
             raise ValueError("Dependencies for data array creation not found.")
         if not self.measurement_data.measurement_record:
