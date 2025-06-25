@@ -395,7 +395,7 @@ class CellVoyagerAcquisition(Base):
             channels: list[int] | None = None,
             z_indices: list[int] | None = None,
         ):
-        from src.cellvoyager_types._xarray import HAS_XARRAY
+        from cellvoyager_types._xarray import HAS_XARRAY
         if HAS_XARRAY:
             from src.cellvoyager_types._xarray import dataarray_from_metadata
         else:
