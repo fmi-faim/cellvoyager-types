@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, DirectoryPath, Field, field_validator
+from typing import Annotated, Literal, Optional, Any
+
+from pydantic import BaseModel, ConfigDict, Field, DirectoryPath, field_validator
 from pydantic.alias_generators import to_pascal
-from typing import Annotated, Literal
 
 
 class Base(BaseModel):
@@ -24,6 +25,7 @@ class MeasurementRecordBase(Base):
 
 class ImageMeasurementRecord(MeasurementRecordBase):
     type: Literal["IMG"]
+    partial_tile_index: int | None = None
     tile_x_index: int | None = None
     tile_y_index: int | None = None
     z_index: int
@@ -37,7 +39,7 @@ class ImageMeasurementRecord(MeasurementRecordBase):
 
 
 class ErrorMeasurementRecord(MeasurementRecordBase):
-    type: Literal["ERR"]
+    type: Literal["IMG","ERR"]
 
 
 class MeasurementData(Base):
@@ -111,12 +113,17 @@ class TargetWell(Base):
 
 
 class WellSequence(Base):
-    is_selected: bool
-    target_well: list[TargetWell]
+    is_selected: bool = Field(alias='IsSelected')
+    target_well: Optional[list[TargetWell]] = Field(
+        default=None, alias='TargetWell'
+    )
 
     @field_validator('target_well', mode='before')
-    def _ensure_list(cls, v):
-        """Convert single dict to list containing that dict"""
+    @classmethod
+    def _ensure_list(cls, v: Any):
+        """Convert single dict to list containing that dict, or handle None."""
+        if v is None:
+            return None
         if isinstance(v, dict):
             return [v]
         if isinstance(v, list):
@@ -125,45 +132,119 @@ class WellSequence(Base):
 
 
 class Point(Base):
-    x: float
-    y: float
+    x: float = Field(alias="X")
+    y: float = Field(alias="Y")
 
 
 class FixedPosition(Base):
     is_proportional: bool
-    point: list[Point]
+    point: list[Point] = Field(alias="Point")
+
+    @field_validator("point", mode="before")
+    @classmethod
+    def _ensure_list(cls, v: Any):
+        if v is None or isinstance(v, list):
+            return v
+        if isinstance(v, dict):
+            return [v]
+        raise TypeError(f"Expected dict, list or None, got {type(v).__name__}")
+
+
+class TiledArea(Base):
+    start_point_x: float = Field(alias="StartPointX")
+    start_point_y: float = Field(alias="StartPointY")
+    end_point_x: float = Field(alias="EndPointX")
+    end_point_y: float = Field(alias="EndPointY")
+
+
+class PartialTiledPosition(Base):
+    overlapping_pixels: int = Field(alias="OverlappingPixels")
+    scan_method: Literal["Raster","Tile"] = Field(alias="ScanMethod")
+    fill: str = Field(alias="Fill")
+    tiled_area: TiledArea = Field(alias="TiledArea")
 
 
 class PointSequence(Base):
-    method: str
-    fixed_position: FixedPosition
+    method: Literal["FixedPosition","PartialTiledPosition"] = Field(alias="Method")
+    fixed_position: FixedPosition | None = None
+    partial_tiled_position: PartialTiledPosition | None = None
 
 
-class ActionAcquire3D(Base):
-    x_offset: int
-    y_offset: int
-    a_f_shift_base: int
-    top_distance: int
-    bottom_distance: int
-    slice_length: int
-    use_soft_focus: bool
-    ch: int
-    image_processing: str | None = None
+class LiveOption(Base):
+    period: str = Field(alias="Period")
+    interval: str = Field(alias="Interval")
+    kind: str = Field(alias="Kind")
+    perform_af: str = Field(alias="PerformAF")
+
+
+class _ActionAcquireBase(Base):
+    """Fields shared by all action-acquire structures."""
+    x_offset: str = Field(alias="XOffset")
+    y_offset: str = Field(alias="YOffset")
+
+
+class ActionAcquire3D(_ActionAcquireBase):
+    af_shift_base: str = Field(alias="AFShiftBase")
+    top_distance: str = Field(alias="TopDistance")
+    bottom_distance: str = Field(alias="BottomDistance")
+    slice_length: str = Field(alias="SliceLength")
+    use_soft_focus: str = Field(alias="UseSoftFocus")
+    ch: str | list[str] = Field(alias="Ch")
+    image_processing: Optional[str] = Field(alias="ImageProcessing", default=None)
+
+    @field_validator("ch", mode="before")
+    @classmethod
+    def _ensure_list_or_str(cls, v):
+        """Handle both single string and list of strings for ch field."""
+        if isinstance(v, (str, list)):
+            return v
+        raise TypeError(f"Expected string or list, got {type(v).__name__}")
+
+
+class ActionAcquireBF3D(_ActionAcquireBase):
+    af_shift_base: str = Field(alias="AFShiftBase")
+    top_distance: str = Field(alias="TopDistance")
+    bottom_distance: str = Field(alias="BottomDistance")
+    slice_length: str = Field(alias="SliceLength")
+    ch: str = Field(alias="Ch")
+
+
+class ActionAcquireBF(_ActionAcquireBase):
+    z_offset: str = Field(alias="ZOffset")
+    live_option: Optional[LiveOption] = Field(alias="LiveOption", default=None)
+    ch: str = Field(alias="Ch")
+
+
+class ActionAcquire(_ActionAcquireBase):
+    z_offset: str = Field(alias="ZOffset")
+    ignore_soft_focus: Optional[str] = Field(alias="IgnoreSoftFocus", default=None)
+    connected_action: Optional[str] = Field(alias="ConnectedAction", default=None)
+    live_option: Optional[LiveOption] = Field(alias="LiveOption", default=None)
+    ch: str = Field(alias="Ch")
 
 
 class ActionList(Base):
-    run_mode: str
-    a_f_search: str | None = None
-    action_acquire_3_d: list[ActionAcquire3D]
+    run_mode: str = Field(alias="RunMode")
+    a_f_search: Optional[str] = Field(alias="AFSearch", default=None)
 
-    @field_validator('action_acquire_3_d', mode='before')
+    action_acquire: Optional[list[ActionAcquire]] = Field(default=None, alias="ActionAcquire")
+    action_acquire_3_d: Optional[list[ActionAcquire3D]] = Field(default=None, alias="ActionAcquire3D")
+    action_acquire_bf: Optional[list[ActionAcquireBF]] = Field(default=None, alias="ActionAcquireBF")
+    action_acquire_bf_3_d: Optional[list[ActionAcquireBF3D]] = Field(default=None, alias="ActionAcquireBF3D")
+
+    @field_validator(
+        "action_acquire",
+        "action_acquire_3_d",
+        "action_acquire_bf",
+        "action_acquire_bf_3_d",
+        mode="before",
+    )
     def _ensure_list(cls, v):
-        """Convert single dict to list containing that dict"""
+        if v is None or isinstance(v, list):
+            return v
         if isinstance(v, dict):
             return [v]
-        if isinstance(v, list):
-            return v
-        raise ValueError(f'Expected dict or list, got {type(v)}')
+        raise TypeError(f"Expected dict, list or None, got {type(v).__name__}")
 
 
 class Timeline(Base):
@@ -227,7 +308,7 @@ class Channel(Base):
     camera_type: str
     input_level: int
     fluorophore: str
-    light_source_name: str
+    light_source_name: str | list[str]
 
 
 class ChannelList(Base):
@@ -314,9 +395,9 @@ class CellVoyagerAcquisition(Base):
             channels: list[int] | None = None,
             z_indices: list[int] | None = None,
         ):
-        from cellvoyager_types._xarray import HAS_XARRAY
+        from src.cellvoyager_types._xarray import HAS_XARRAY
         if HAS_XARRAY:
-            from cellvoyager_types._xarray import dataarray_from_metadata
+            from src.cellvoyager_types._xarray import dataarray_from_metadata
         else:
             raise ValueError("Dependencies for data array creation not found.")
         if not self.measurement_data.measurement_record:
